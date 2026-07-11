@@ -1,0 +1,631 @@
+name	"Employee_Onboarding_Workflow.json"
+nodes	
+0	
+parameters	
+pollTimes	
+item	
+0	
+mode	"everyMinute"
+documentId	
+__rl	true
+value	"1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0"
+mode	"list"
+cachedResultName	"Employee Onboarding Responses"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit?usp=drivesdk"
+sheetName	
+__rl	true
+value	2066095647
+mode	"list"
+cachedResultName	"Form Responses 1"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit#gid=2066095647"
+event	"rowAdded"
+options	{}
+type	"n8n-nodes-base.googleSheetsTrigger"
+typeVersion	1
+position	
+0	-944
+1	-112
+id	"36f63b09-28fa-48e4-b8e0-bba357e4a0b1"
+name	"Google Sheets Trigger"
+credentials	
+googleSheetsTriggerOAuth2Api	
+id	"NsRzb8uDRiX1bRsc"
+name	"Google Sheets Trigger account"
+1	
+parameters	
+mode	"runOnceForEachItem"
+jsCode	"// Get today's date\nconst today = new Date();\nconst year = today.getFullYear();\nconst month = String(today.getMonth() + 1).padStart(2, '0');\nconst day = String(today.getDate()).padStart(2, '0');\n\n// Generate a random 3-digit number\nconst randomNum = Math.floor(Math.random() * 900) + 100;\n\n// Create Employee ID\nconst employeeID = `EMP-${year}${month}${day}-${randomNum}`;\n\n// Return all original data plus EmployeeID\nreturn {\n  json: {\n    ...$json,\n    EmployeeID: employeeID,\n    Status: \"Pending\"\n  }\n};"
+type	"n8n-nodes-base.code"
+typeVersion	2
+position	
+0	-576
+1	-112
+id	"38992d7b-a503-4808-af29-1514f3bea40a"
+name	"Code in JavaScript"
+2	
+parameters	
+promptType	"define"
+text	"=Write a welcome email for the following employee.\n\nEmployee Name:\n{{ $json['First Name '] }} {{ $json['Last Name '] }}\n\nEmployee ID:\n{{ $json.EmployeeID }}\n\nDepartment:\n{{ $json['Department '] }}\n\nPosition:\n{{ $json['Job Position '] }}\n\nStart Date:\n{{ $json['Start Date '] }}\n\n"
+options	
+systemMessage	'=You are an HR Assistant at Aglow Health Technologies.\n\nGenerate only the body of a professional welcome email. Separate each paragraph.\n\nDo NOT include:\n- Subject\n- Markdown\n- HTML\n- Return ONLY valid HTML.\n- Do NOT use \\n.\n- Do NOT use Markdown.\n- Do NOT wrap the output in ```html```.\n\nStart directly with:\n\nDear [Employee Name],\n\nThe email should include:\n\n• Employee Name\n• Employee ID\n• Department\n• Job Position\n• Start Date\n\nKeep it friendly and please no asterick, under 200 words.\n\nEnd with:\n\n"We look forward to working with you."\n\nReturn only the email body.'
+type	"@n8n/n8n-nodes-langchain.agent"
+typeVersion	3.1
+position	
+0	-416
+1	-112
+id	"e8b497bb-04fc-4f04-9887-7195b76baeb7"
+name	"AI Agent"
+3	
+parameters	
+sendTo	"={{ $('Code in JavaScript').item.json['Manager Email '] }}"
+subject	"New Employee Registration Notification"
+emailType	"text"
+message	"=Hello HR Team,  \n\nA new employee has completed registration.\n\nEmployee Name:{{ $('Code in JavaScript').item.json['First Name '] }} {{ $('Code in JavaScript').item.json['Last Name '] }}\nEmployee ID:  {{ $('Code in JavaScript').item.json.EmployeeID }}\nDepartment: {{ $('Code in JavaScript').item.json['Department '] }}\nPosition: {{ $('Code in JavaScript').item.json['Job Position '] }}\nStart Date: {{ $('Code in JavaScript').item.json['Start Date '] }}\n\nPlease begin the onboarding process. \n\nRegards, \nAglow Health Technologies"
+options	
+appendAttribution	true
+type	"n8n-nodes-base.gmail"
+typeVersion	2.2
+position	
+0	-16
+1	-64
+id	"8f035d86-ba8d-44a4-972f-acbd300d19a0"
+name	"Notify HR"
+webhookId	"c3dcd739-2f7e-43dd-b38d-1b22970bf8df"
+credentials	
+gmailOAuth2	
+id	"cBPHJDuOK2Gy3i7c"
+name	"Gmail account"
+4	
+parameters	
+sendTo	"={{ $('Code in JavaScript').item.json['Email Address '] }}"
+subject	"Welcome to Aglow Health Technologies!"
+emailType	"text"
+message	"={{ $json.output }}"
+options	{}
+type	"n8n-nodes-base.gmail"
+typeVersion	2.2
+position	
+0	-160
+1	-64
+id	"98e29ae8-ec1f-4c7d-ad7f-8e791dc81a6a"
+name	"Send a message (Employee)"
+webhookId	"48031071-9e99-4648-8722-aa4e610f0548"
+credentials	
+gmailOAuth2	
+id	"cBPHJDuOK2Gy3i7c"
+name	"Gmail account"
+5	
+parameters	
+sendTo	"={{ $('Code in JavaScript').item.json['Manager Email '] }}"
+subject	"New Employee Assigned to Your Team"
+emailType	"text"
+message	"=Hello Sir,  \n\n\nA new employee has been assigned to your department.  \n\nEmployee: {{ $('Code in JavaScript').item.json['First Name '] }} {{ $('Code in JavaScript').item.json['Last Name '] }}\n\nDepartment: {{ $('Code in JavaScript').item.json['Department '] }}\n\nPosition: {{ $('Code in JavaScript').item.json['Job Position '] }}\n\nStart Date: {{ $('Code in JavaScript').item.json['Start Date '] }}\n\nEmployee ID:  {{ $('Code in JavaScript').item.json.EmployeeID }}\n\nPlease prepare for the employee's arrival. \n\nRegards, \nAglow Health Technologies"
+options	{}
+type	"n8n-nodes-base.gmail"
+typeVersion	2.2
+position	
+0	112
+1	-64
+id	"9ad0ffea-7202-46ba-8682-dd5b34315f56"
+name	"Notify Manager"
+webhookId	"879db5de-d0eb-4e45-a223-49391cdeb92e"
+credentials	
+gmailOAuth2	
+id	"cBPHJDuOK2Gy3i7c"
+name	"Gmail account"
+6	
+parameters	
+model	"openrouter/free"
+options	{}
+type	"@n8n/n8n-nodes-langchain.lmChatOpenRouter"
+typeVersion	1
+position	
+0	-416
+1	48
+id	"3ed37f5e-667a-47ad-ac42-9be45736e9ac"
+name	"OpenRouter Chat Model"
+credentials	
+openRouterApi	
+id	"imHOG6QftohEAFPF"
+name	"OpenRouter account"
+7	
+parameters	
+jsCode	'const employee = $input.first().json;\n\nconst fullName = `${employee["First Name "]} ${employee["Last Name "]}`;\n\n// Create onboarding tasks\nconst tasks = [\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Create company email account",\n    AssignedTo: "IT Department",\n    Status: "Pending"\n  },\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Prepare workstation and laptop",\n    AssignedTo: "IT Department",\n    Status: "Pending"\n  },\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Prepare employee ID card",\n    AssignedTo: "HR Department",\n    Status: "Pending"\n  },\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Assign department manager",\n    AssignedTo: employee["Manager Email"],\n    Status: "Pending"\n  },\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Schedule orientation session",\n    AssignedTo: "HR Department",\n    Status: "Pending"\n  },\n  {\n    EmployeeID: employee.EmployeeID,\n    EmployeeName: fullName,\n    Department: employee.Department,\n    Task: "Enroll employee in payroll system",\n    AssignedTo: "Finance Department",\n    Status: "Pending"\n  }\n];\n\n// Return each task as a separate item\nreturn tasks.map(task => ({\n  json: task\n}));'
+type	"n8n-nodes-base.code"
+typeVersion	2
+position	
+0	-864
+1	176
+id	"927cb55e-8b92-4ccd-a52d-568317518e42"
+name	"Generate Onboarding Task"
+8	
+parameters	
+conditions	
+options	
+caseSensitive	true
+leftValue	""
+typeValidation	"strict"
+version	3
+conditions	
+0	
+id	"7c2fc36b-040c-42ef-8fff-0a196d66730b"
+leftValue	"={{ $json['Email Address '] }}"
+rightValue	""
+operator	
+type	"string"
+operation	"notEmpty"
+singleValue	true
+1	
+id	"976251e2-3f76-4e06-98bf-d52756107f2a"
+leftValue	"={{ $json['Department '] }}"
+rightValue	""
+operator	
+type	"string"
+operation	"notEmpty"
+singleValue	true
+2	
+id	"e6af8bfe-ed5b-43d4-9004-c19d89a50cf3"
+leftValue	"={{ $json['Manager Email '] }}"
+rightValue	""
+operator	
+type	"string"
+operation	"notEmpty"
+singleValue	true
+combinator	"and"
+options	{}
+type	"n8n-nodes-base.if"
+typeVersion	2.3
+position	
+0	-784
+1	-112
+id	"53a02e3b-cca4-48cd-9f51-008f5d9aa5fb"
+name	"Validate Employee Data"
+9	
+parameters	
+operation	"append"
+documentId	
+__rl	true
+value	"1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0"
+mode	"list"
+cachedResultName	"Employee Onboarding Responses"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit?usp=drivesdk"
+sheetName	
+__rl	true
+value	1447663407
+mode	"list"
+cachedResultName	"Onboarding Tasks"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit#gid=1447663407"
+columns	
+mappingMode	"autoMapInputData"
+value	
+EmployeeID	"={{ $json.EmployeeID }}"
+Employee Name	"={{ $json.EmployeeName }}"
+Task	"={{ $json.Task }}"
+Assigned To	"={{ $json.AssignedTo }}"
+Status	"={{ $json.Status }}"
+matchingColumns	[]
+schema	
+0	
+id	"EmployeeID"
+displayName	"EmployeeID"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+1	
+id	"Employee Name"
+displayName	"Employee Name"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+2	
+id	"Task"
+displayName	"Task"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+3	
+id	"Assigned To"
+displayName	"Assigned To"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+4	
+id	"Status"
+displayName	"Status"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+5	
+id	"EmployeeName"
+displayName	"EmployeeName"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+removed	false
+6	
+id	"AssignedTo"
+displayName	"AssignedTo"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+removed	false
+attemptToConvertTypes	false
+convertFieldsToString	false
+options	{}
+type	"n8n-nodes-base.googleSheets"
+typeVersion	4.7
+position	
+0	-704
+1	176
+id	"b90976c8-fb0e-4a5d-864f-3a5e655119c0"
+name	"Onboarding Task"
+credentials	
+googleSheetsOAuth2Api	
+id	"qPPQP11VLikje8NQ"
+name	"Google Sheets account"
+10	
+parameters	
+operation	"update"
+documentId	
+__rl	true
+value	"1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0"
+mode	"list"
+cachedResultName	"Employee Onboarding Responses"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit?usp=drivesdk"
+sheetName	
+__rl	true
+value	2066095647
+mode	"list"
+cachedResultName	"Form Responses 1"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit#gid=2066095647"
+columns	
+mappingMode	"defineBelow"
+value	
+row_number	"={{ $json.row_number }}"
+Status	"Onboarding Started"
+EmployeeID	"={{ $json.EmployeeID }}"
+Additional Notes 	"={{ $json['Additional Notes '] }}"
+Employment Type 	"={{ $json['Employment Type '] }}"
+Start Date 	"={{ $json['Start Date '] }}"
+Manager Email 	"={{ $json['Manager Email '] }}"
+Job Position 	"={{ $json['Job Position '] }}"
+Department 	"={{ $json['Department '] }}"
+Timestamp	"={{ $json.Timestamp }}"
+First Name 	"={{ $json['First Name '] }}"
+Last Name 	"={{ $json['Last Name '] }}"
+Email Address 	"={{ $json['Email Address '] }}"
+Phone Number 	"={{ $json['Phone Number '] }}"
+matchingColumns	
+0	"EmployeeID"
+schema	
+0	
+id	"Timestamp"
+displayName	"Timestamp"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+1	
+id	"First Name "
+displayName	"First Name "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+2	
+id	"Last Name "
+displayName	"Last Name "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+3	
+id	"Email Address "
+displayName	"Email Address "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+4	
+id	"Phone Number "
+displayName	"Phone Number "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+5	
+id	"Department "
+displayName	"Department "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+6	
+id	"Job Position "
+displayName	"Job Position "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+7	
+id	"Manager Email "
+displayName	"Manager Email "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+8	
+id	"Start Date "
+displayName	"Start Date "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+9	
+id	"Employment Type "
+displayName	"Employment Type "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+10	
+id	"Additional Notes "
+displayName	"Additional Notes "
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+11	
+id	"Status"
+displayName	"Status"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+removed	false
+12	
+id	"EmployeeID"
+displayName	"EmployeeID"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+removed	false
+13	
+id	"row_number"
+displayName	"row_number"
+required	false
+defaultMatch	false
+display	true
+type	"number"
+canBeUsedToMatch	true
+readOnly	true
+removed	false
+attemptToConvertTypes	false
+convertFieldsToString	false
+options	{}
+type	"n8n-nodes-base.googleSheets"
+typeVersion	4.7
+position	
+0	-352
+1	176
+id	"33c0c460-6eb5-4c1b-977a-ff6a2d6c75b2"
+name	"Update Employee Status"
+credentials	
+googleSheetsOAuth2Api	
+id	"qPPQP11VLikje8NQ"
+name	"Google Sheets account"
+11	
+parameters	
+documentId	
+__rl	true
+value	"1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0"
+mode	"list"
+cachedResultName	"Employee Onboarding Responses"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit?usp=drivesdk"
+sheetName	
+__rl	true
+value	2066095647
+mode	"list"
+cachedResultName	"Form Responses 1"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit#gid=2066095647"
+filtersUI	
+values	
+0	
+lookupColumn	"=EmployeeID"
+lookupValue	"={{ $json.EmployeeID }}"
+options	{}
+type	"n8n-nodes-base.googleSheets"
+typeVersion	4.7
+position	
+0	-528
+1	176
+id	"1e623aed-e8f6-4ac5-be45-6a5b8e5e2ab1"
+name	"Find Employee Row"
+credentials	
+googleSheetsOAuth2Api	
+id	"qPPQP11VLikje8NQ"
+name	"Google Sheets account"
+12	
+parameters	
+operation	"append"
+documentId	
+__rl	true
+value	"1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0"
+mode	"list"
+cachedResultName	"Employee Onboarding Responses"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit?usp=drivesdk"
+sheetName	
+__rl	true
+value	614167756
+mode	"list"
+cachedResultName	"Error Log"
+cachedResultUrl	"https://docs.google.com/spreadsheets/d/1U-BBzaP8wGIRQ7i4p98JuungPAoqw1sNk0TtHHcPCI0/edit#gid=614167756"
+columns	
+mappingMode	"defineBelow"
+value	
+Timestamp	"={{ $json.Timestamp }}"
+EmployeeID	"={{ $json.EmployeeID }}"
+Node	"={{$json.execution.lastNodeExecuted}}"
+matchingColumns	[]
+schema	
+0	
+id	"Timestamp"
+displayName	"Timestamp"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+1	
+id	"Node"
+displayName	"Node"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+removed	false
+2	
+id	"EmployeeID"
+displayName	"EmployeeID"
+required	false
+defaultMatch	false
+display	true
+type	"string"
+canBeUsedToMatch	true
+attemptToConvertTypes	false
+convertFieldsToString	false
+options	{}
+type	"n8n-nodes-base.googleSheets"
+typeVersion	4.7
+position	
+0	-160
+1	176
+id	"4fbeb2b7-2afc-4d3a-bfbc-18d02d1bafa0"
+name	"Log Workflow Activity"
+credentials	
+googleSheetsOAuth2Api	
+id	"qPPQP11VLikje8NQ"
+name	"Google Sheets account"
+pinData	{}
+connections	
+Google Sheets Trigger	
+main	
+0	
+0	
+node	"Validate Employee Data"
+type	"main"
+index	0
+Code in JavaScript	
+main	
+0	
+0	
+node	"AI Agent"
+type	"main"
+index	0
+1	
+node	"Generate Onboarding Task"
+type	"main"
+index	0
+AI Agent	
+main	
+0	
+0	
+node	"Send a message (Employee)"
+type	"main"
+index	0
+Notify HR	
+main	
+0	
+0	
+node	"Notify Manager"
+type	"main"
+index	0
+Send a message (Employee)	
+main	
+0	
+0	
+node	"Notify HR"
+type	"main"
+index	0
+OpenRouter Chat Model	
+ai_languageModel	
+0	
+0	
+node	"AI Agent"
+type	"ai_languageModel"
+index	0
+Notify Manager	
+main	
+0	[]
+Generate Onboarding Task	
+main	
+0	
+0	
+node	"Onboarding Task"
+type	"main"
+index	0
+Validate Employee Data	
+main	
+0	
+0	
+node	"Code in JavaScript"
+type	"main"
+index	0
+Onboarding Task	
+main	
+0	
+0	
+node	"Find Employee Row"
+type	"main"
+index	0
+Find Employee Row	
+main	
+0	
+0	
+node	"Update Employee Status"
+type	"main"
+index	0
+Update Employee Status	
+main	
+0	[]
+active	false
+settings	
+executionOrder	"v1"
+binaryMode	"separate"
+availableInMCP	false
+versionId	"d5bdacb4-7657-4db5-b446-923d1798b9c6"
+meta	
+templateCredsSetupCompleted	true
+instanceId	"c98ad9ddd6d1c4fcad648e719fc7512eb73a5049950a24730fb436aebd268878"
+nodeGroups	[]
+id	"HvF0dtahTczOb10D"
+tags	[]
